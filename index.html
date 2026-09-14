@@ -1,0 +1,353 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard Monitoring Progres Fabrikasi</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Chart.js CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+    </style>
+</head>
+<body class="bg-slate-100 text-slate-800">
+
+    <!-- Sidebar & Main Container -->
+    <div class="min-h-screen flex flex-col justify-between">
+        
+        <!-- Header / Navbar -->
+        <header class="bg-slate-900 text-white px-6 py-4 shadow-md flex justify-between items-center">
+            <div class="flex items-center space-x-3">
+                <i class="fa-solid fa-industry text-amber-500 text-2xl"></i>
+                <h1 class="text-xl font-bold tracking-wide">FABRI-TRACK <span class="text-xs font-normal bg-amber-500 text-slate-900 px-2 py-0.5 rounded ml-2 font-semibold">Monitoring System</span></h1>
+            </div>
+            <div class="flex items-center space-x-4">
+                <span class="text-sm text-slate-300"><i class="fa-regular fa-clock mr-1"></i> Update: 24 Oct 2023, 14:00</span>
+                <button class="bg-amber-500 hover:bg-amber-600 text-slate-900 px-3 py-1.5 rounded font-medium text-sm transition">
+                    <i class="fa-solid fa-download mr-1"></i> Export Report
+                </button>
+            </div>
+        </header>
+
+        <!-- Main Content -->
+        <main class="p-6 space-y-6 max-w-[1600px] mx-auto w-full">
+
+            <!-- Top Cards / KPI Section (Analisis Status & Distribusi Headmark) -->
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
+                <div class="bg-white p-4 rounded-xl shadow-sm border border-slate-200 border-l-4 border-l-blue-500">
+                    <p class="text-xs font-semibold text-slate-500 uppercase">Total Head Mark</p>
+                    <h3 class="text-2xl font-bold text-slate-800 mt-1">1,250 <span class="text-xs font-normal text-slate-500">Pcs</span></h3>
+                    <p class="text-xs text-blue-600 mt-2"><i class="fa-solid fa-layer-group"></i> 100% dari Target Project</p>
+                </div>
+                <div class="bg-white p-4 rounded-xl shadow-sm border border-slate-200 border-l-4 border-l-green-500">
+                    <p class="text-xs font-semibold text-slate-500 uppercase">Selesai (Completed)</p>
+                    <h3 class="text-2xl font-bold text-green-600 mt-1">850 <span class="text-xs font-normal text-slate-500">Pcs</span></h3>
+                    <p class="text-xs text-green-600 mt-2"><i class="fa-solid fa-circle-check"></i> 68% Distribusi Headmark</p>
+                </div>
+                <div class="bg-white p-4 rounded-xl shadow-sm border border-slate-200 border-l-4 border-l-amber-500">
+                    <p class="text-xs font-semibold text-slate-500 uppercase">Dalam Proses (In Progress)</p>
+                    <h3 class="text-2xl font-bold text-amber-500 mt-1">320 <span class="text-xs font-normal text-slate-500">Pcs</span></h3>
+                    <p class="text-xs text-amber-600 mt-2"><i class="fa-solid fa-spinner"></i> 25.6% Distribusi Headmark</p>
+                </div>
+                <div class="bg-white p-4 rounded-xl shadow-sm border border-slate-200 border-l-4 border-l-slate-400">
+                    <p class="text-xs font-semibold text-slate-500 uppercase">Belum Dimulai (Not Started)</p>
+                    <h3 class="text-2xl font-bold text-slate-600 mt-1">80 <span class="text-xs font-normal text-slate-500">Pcs</span></h3>
+                    <p class="text-xs text-slate-500 mt-2"><i class="fa-solid fa-pause"></i> 6.4% Distribusi Headmark</p>
+                </div>
+                <div class="bg-white p-4 rounded-xl shadow-sm border border-slate-200 border-l-4 border-l-red-500">
+                    <p class="text-xs font-semibold text-slate-500 uppercase">Delay / Hold</p>
+                    <h3 class="text-2xl font-bold text-red-600 mt-1">15 <span class="text-xs font-normal text-slate-500">Pcs</span></h3>
+                    <p class="text-xs text-red-500 mt-2"><i class="fa-solid fa-triangle-exclamation"></i> Perlu Tindakan Segera</p>
+                </div>
+            </div>
+
+            <!-- Charts Row 1: Diagram Perbandingan Plan vs Actual & Tren Progres -->
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <!-- Diagram Perbandingan Plan vs Actual per Head Mark (Top Items) -->
+                <div class="bg-white p-5 rounded-xl shadow-sm border border-slate-200">
+                    <div class="flex justify-between items-center mb-4">
+                        <h2 class="font-bold text-slate-800 text-base"><i class="fa-solid fa-chart-bar text-amber-500 mr-2"></i>Perbandingan Plan vs Actual (Head Mark Utama)</h2>
+                        <span class="text-xs bg-slate-100 text-slate-600 px-2.5 py-1 rounded">Qty (Ton)</span>
+                    </div>
+                    <div class="relative h-64">
+                        <canvas id="planVsActualChart"></canvas>
+                    </div>
+                </div>
+
+                <!-- Diagram Tren Progres Fabrikasi -->
+                <div class="bg-white p-5 rounded-xl shadow-sm border border-slate-200">
+                    <div class="flex justify-between items-center mb-4">
+                        <h2 class="font-bold text-slate-800 text-base"><i class="fa-solid fa-chart-line text-blue-500 mr-2"></i>Diagram Tren Progres Fabrikasi (Mingguan)</h2>
+                        <span class="text-xs bg-slate-100 text-slate-600 px-2.5 py-1 rounded">Kumulatif %</span>
+                    </div>
+                    <div class="relative h-64">
+                        <canvas id="trendChart"></canvas>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Charts Row 2: Stasiun Fabrikasi & Bottleneck, Status Headmark, Akumulasi Stasiun % -->
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                
+                <!-- Stasiun Fabrikasi vs Status Headmark -->
+                <div class="bg-white p-5 rounded-xl shadow-sm border border-slate-200">
+                    <h2 class="font-bold text-slate-800 text-base mb-4"><i class="fa-solid fa-list-check text-green-500 mr-2"></i>Stasiun vs Status Headmark</h2>
+                    <div class="relative h-64">
+                        <canvas id="stationStatusChart"></canvas>
+                    </div>
+                </div>
+
+                <!-- Stasiun Fabrikasi & Bottleneck Analysis -->
+                <div class="bg-white p-5 rounded-xl shadow-sm border border-slate-200">
+                    <div class="flex justify-between items-center mb-4">
+                        <h2 class="font-bold text-slate-800 text-base"><i class="fa-solid fa-triangle-exclamation text-red-500 mr-2"></i>Analisis Bottleneck Stasiun</h2>
+                        <span class="text-xs bg-red-100 text-red-700 px-2 py-0.5 rounded font-semibold">Queue (WIP)</span>
+                    </div>
+                    <div class="relative h-64">
+                        <canvas id="bottleneckChart"></canvas>
+                    </div>
+                </div>
+
+                <!-- Akumulasi Stasiun Proses % -->
+                <div class="bg-white p-5 rounded-xl shadow-sm border border-slate-200">
+                    <h2 class="font-bold text-slate-800 text-base mb-4"><i class="fa-solid fa-pie-chart text-purple-500 mr-2"></i>Akumulasi Stasiun Proses (%)</h2>
+                    <div class="relative h-64">
+                        <canvas id="stationAccumulationChart"></canvas>
+                    </div>
+                </div>
+
+            </div>
+
+            <!-- Table Section: Detail Monitoring Fabrikasi per Headmark & Stasiun Kerja -->
+            <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
+                <div class="p-5 border-b border-slate-200 flex flex-col sm:flex-row justify-between items-center gap-4">
+                    <div>
+                        <h2 class="font-bold text-slate-800 text-base"><i class="fa-solid fa-table-list text-slate-600 mr-2"></i>Detail Monitoring Fabrikasi per Headmark & Stasiun Kerja</h2>
+                        <p class="text-xs text-slate-500 mt-0.5">Tracking real-time posisi komponen pada stasiun kerja</p>
+                    </div>
+                    <div class="flex space-x-2 w-full sm:w-auto">
+                        <input type="text" placeholder="Cari Headmark..." class="text-xs border border-slate-300 rounded-lg px-3 py-2 focus:outline-none focus:border-amber-500 w-full sm:w-48">
+                        <select class="text-xs border border-slate-300 rounded-lg px-3 py-2 focus:outline-none focus:border-amber-500">
+                            <option value="">Semua Stasiun</option>
+                            <option>Cutting</option>
+                            <option>Fit-up</option>
+                            <option>Welding</option>
+                            <option>Blasting/Painting</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left border-collapse text-xs">
+                        <thead>
+                            <tr class="bg-slate-50 border-b border-slate-200 text-slate-600 font-semibold uppercase">
+                                <th class="p-3">Head Mark</th>
+                                <th class="p-3">Deskripsi Komponen</th>
+                                <th class="p-3 text-center">Qty (Pcs)</th>
+                                <th class="p-3 text-center">Berat (Kg)</th>
+                                <th class="p-3 text-center">Cutting</th>
+                                <th class="p-3 text-center">Fit-Up</th>
+                                <th class="p-3 text-center">Welding</th>
+                                <th class="p-3 text-center">Painting</th>
+                                <th class="p-3 text-center">Total Progres</th>
+                                <th class="p-3 text-center">Status Global</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-slate-100 text-slate-700">
+                            <tr class="hover:bg-slate-50">
+                                <td class="p-3 font-bold text-slate-900">HM-COL-01</td>
+                                <td class="p-3">Kolom Utama WF 400x200</td>
+                                <td class="p-3 text-center">12</td>
+                                <td class="p-3 text-center">2,450</td>
+                                <td class="p-3 text-center"><span class="bg-green-100 text-green-800 text-[10px] font-bold px-2 py-0.5 rounded">100%</span></td>
+                                <td class="p-3 text-center"><span class="bg-green-100 text-green-800 text-[10px] font-bold px-2 py-0.5 rounded">100%</span></td>
+                                <td class="p-3 text-center"><span class="bg-green-100 text-green-800 text-[10px] font-bold px-2 py-0.5 rounded">100%</span></td>
+                                <td class="p-3 text-center"><span class="bg-green-100 text-green-800 text-[10px] font-bold px-2 py-0.5 rounded">100%</span></td>
+                                <td class="p-3 text-center font-bold text-green-600">100%</td>
+                                <td class="p-3 text-center"><span class="bg-green-500 text-white text-[10px] px-2 py-1 rounded font-semibold">Completed</span></td>
+                            </tr>
+                            <tr class="hover:bg-slate-50">
+                                <td class="p-3 font-bold text-slate-900">HM-RAI-04</td>
+                                <td class="p-3">Rafter WF 300x150</td>
+                                <td class="p-3 text-center">24</td>
+                                <td class="p-3 text-center">3,100</td>
+                                <td class="p-3 text-center"><span class="bg-green-100 text-green-800 text-[10px] font-bold px-2 py-0.5 rounded">100%</span></td>
+                                <td class="p-3 text-center"><span class="bg-green-100 text-green-800 text-[10px] font-bold px-2 py-0.5 rounded">100%</span></td>
+                                <td class="p-3 text-center"><span class="bg-amber-100 text-amber-800 text-[10px] font-bold px-2 py-0.5 rounded">60%</span></td>
+                                <td class="p-3 text-center"><span class="bg-slate-100 text-slate-500 text-[10px] font-bold px-2 py-0.5 rounded">0%</span></td>
+                                <td class="p-3 text-center font-bold text-amber-600">65%</td>
+                                <td class="p-3 text-center"><span class="bg-amber-500 text-white text-[10px] px-2 py-1 rounded font-semibold">In Progress</span></td>
+                            </tr>
+                            <tr class="hover:bg-slate-50">
+                                <td class="p-3 font-bold text-slate-900">HM-BEA-02</td>
+                                <td class="p-3">Balok Induk H-Beam 250</td>
+                                <td class="p-3 text-center">18</td>
+                                <td class="p-3 text-center">1,890</td>
+                                <td class="p-3 text-center"><span class="bg-green-100 text-green-800 text-[10px] font-bold px-2 py-0.5 rounded">100%</span></td>
+                                <td class="p-3 text-center"><span class="bg-amber-100 text-amber-800 text-[10px] font-bold px-2 py-0.5 rounded">40%</span></td>
+                                <td class="p-3 text-center"><span class="bg-slate-100 text-slate-500 text-[10px] font-bold px-2 py-0.5 rounded">0%</span></td>
+                                <td class="p-3 text-center"><span class="bg-slate-100 text-slate-500 text-[10px] font-bold px-2 py-0.5 rounded">0%</span></td>
+                                <td class="p-3 text-center font-bold text-amber-600">35%</td>
+                                <td class="p-3 text-center"><span class="bg-red-500 text-white text-[10px] px-2 py-1 rounded font-semibold">Bottleneck</span></td>
+                            </tr>
+                            <tr class="hover:bg-slate-50">
+                                <td class="p-3 font-bold text-slate-900">HM-BRA-08</td>
+                                <td class="p-3">Bracing Siku L75x75x6</td>
+                                <td class="p-3 text-center">50</td>
+                                <td class="p-3 text-center">850</td>
+                                <td class="p-3 text-center"><span class="bg-slate-100 text-slate-500 text-[10px] font-bold px-2 py-0.5 rounded">0%</span></td>
+                                <td class="p-3 text-center"><span class="bg-slate-100 text-slate-500 text-[10px] font-bold px-2 py-0.5 rounded">0%</span></td>
+                                <td class="p-3 text-center"><span class="bg-slate-100 text-slate-500 text-[10px] font-bold px-2 py-0.5 rounded">0%</span></td>
+                                <td class="p-3 text-center"><span class="bg-slate-100 text-slate-500 text-[10px] font-bold px-2 py-0.5 rounded">0%</span></td>
+                                <td class="p-3 text-center font-bold text-slate-400">0%</td>
+                                <td class="p-3 text-center"><span class="bg-slate-400 text-white text-[10px] px-2 py-1 rounded font-semibold">Not Started</span></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+        </main>
+
+        <!-- Footer -->
+        <footer class="bg-white border-t border-slate-200 py-3 px-6 text-center text-xs text-slate-500">
+            &copy; 2023 Fabricator Progress Monitoring System. All rights reserved.
+        </footer>
+    </div>
+
+    <!-- Chart Scripts -->
+    <script>
+        // Global Config Font
+        Chart.defaults.font.family = 'Inter, sans-serif';
+        Chart.defaults.font.size = 11;
+
+        // 1. Diagram Perbandingan Plan vs Actual per Head Mark
+        const ctxPlanVsActual = document.getElementById('planVsActualChart').getContext('2d');
+        new Chart(ctxPlanVsActual, {
+            type: 'bar',
+            data: {
+                labels: ['HM-COL-01', 'HM-COL-02', 'HM-RAI-01', 'HM-BEA-01', 'HM-BEA-02', 'HM-BRA-01'],
+                datasets: [
+                    {
+                        label: 'Plan (Ton)',
+                        data: [25, 30, 20, 15, 18, 10],
+                        backgroundColor: '#cbd5e1'
+                    },
+                    {
+                        label: 'Actual (Ton)',
+                        data: [25, 22, 18, 15, 8, 0],
+                        backgroundColor: '#f59e0b'
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: { legend: { position: 'bottom' } },
+                scales: { y: { beginAtZero: true } }
+            }
+        });
+
+        // 2. Diagram Tren Progres Fabrikasi (S-Curve Style)
+        const ctxTrend = document.getElementById('trendChart').getContext('2d');
+        new Chart(ctxTrend, {
+            type: 'line',
+            data: {
+                labels: ['Mgg 1', 'Mgg 2', 'Mgg 3', 'Mgg 4', 'Mgg 5', 'Mgg 6'],
+                datasets: [
+                    {
+                        label: 'Rencana Kumulatif (%)',
+                        data: [10, 25, 45, 65, 85, 100],
+                        borderColor: '#94a3b8',
+                        borderDash: [5, 5],
+                        fill: false,
+                        tension: 0.3
+                    },
+                    {
+                        label: 'Aktual Kumulatif (%)',
+                        data: [8, 22, 40, 58, 68, null],
+                        borderColor: '#2563eb',
+                        backgroundColor: 'rgba(37, 99, 235, 0.1)',
+                        fill: true,
+                        tension: 0.3
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: { legend: { position: 'bottom' } },
+                scales: { y: { min: 0, max: 100 } }
+            }
+        });
+
+        // 3. Stasiun Fabrikasi dan Status Headmark
+        const ctxStationStatus = document.getElementById('stationStatusChart').getContext('2d');
+        new Chart(ctxStationStatus, {
+            type: 'bar',
+            data: {
+                labels: ['Cutting', 'Fit-Up', 'Welding', 'Painting', 'Dispatch'],
+                datasets: [
+                    {
+                        label: 'Completed',
+                        data: [1100, 950, 880, 850, 800],
+                        backgroundColor: '#22c55e'
+                    },
+                    {
+                        label: 'In-Progress / Waiting',
+                        data: [70, 150, 220, 280, 50],
+                        backgroundColor: '#f59e0b'
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: { legend: { position: 'bottom' } },
+                scales: { x: { stacked: true }, y: { stacked: true } }
+            }
+        });
+
+        // 4. Stasiun Fabrikasi dan Bottleneck Analysis (Antrian / WIP Tinggi)
+        const ctxBottleneck = document.getElementById('bottleneckChart').getContext('2d');
+        new Chart(ctxBottleneck, {
+            type: 'bar',
+            data: {
+                labels: ['Cutting', 'Fit-Up', 'Welding', 'Blasting/Painting', 'QC Inspection'],
+                datasets: [{
+                    label: 'Antrian Penumpukan Work-In-Progress (Pcs)',
+                    data: [15, 85, 120, 45, 20],
+                    backgroundColor: ['#3b82f6', '#f59e0b', '#ef4444', '#3b82f6', '#3b82f6']
+                }]
+            },
+            options: {
+                indexAxis: 'y',
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: { legend: { display: false } }
+            }
+        });
+
+        // 5. Akumulasi Stasiun Proses (%)
+        const ctxAccumulation = document.getElementById('stationAccumulationChart').getContext('2d');
+        new Chart(ctxAccumulation, {
+            type: 'doughnut',
+            data: {
+                labels: ['Cutting (92%)', 'Fit-Up (76%)', 'Welding (70%)', 'Painting (68%)'],
+                datasets: [{
+                    data: [92, 76, 70, 68],
+                    backgroundColor: ['#3b82f6', '#06b6d4', '#8b5cf6', '#ec4899']
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: { legend: { position: 'bottom' } }
+            }
+        });
+    </script>
+</body>
+</html>

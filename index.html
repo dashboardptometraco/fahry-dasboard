@@ -3,87 +3,167 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dashboard Monitoring Fabrikasi</title>
+    <title>Dashboard Monitoring Progres Fabrikasi</title>
     <!-- Bootstrap 5 CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <!-- FontAwesome Icon -->
+    <!-- FontAwesome Icons -->
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
     <!-- Chart.js -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <!-- SheetJS (Excel Parser) -->
+    <!-- SheetJS (Excel Parser & Export) -->
     <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
     <style>
-        body { background-color: #f4f6f9; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
-        .card { border: none; border-radius: 10px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); margin-bottom: 20px; }
-        .stat-card { color: white; border-radius: 10px; }
-        .bg-gradient-primary { background: linear-gradient(45deg, #4e73df, #224abe); }
-        .bg-gradient-success { background: linear-gradient(45deg, #1cc88a, #13855c); }
-        .bg-gradient-warning { background: linear-gradient(45deg, #f6c23e, #dda20a); }
-        .bg-gradient-danger { background: linear-gradient(45deg, #e74a3b, #be2617); }
-        .table-responsive { max-height: 400px; overflow-y: auto; }
-        .chart-container { position: relative; height: 300px; }
+        body { background-color: #f0f2f5; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+        .navbar { background: linear-gradient(135deg, #1e293b, #0f172a); }
+        .card { border: none; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.05); margin-bottom: 20px; }
+        .stat-card { color: white; border-radius: 12px; padding: 20px; position: relative; overflow: hidden; }
+        .bg-card-blue { background: linear-gradient(135deg, #3b82f6, #1d4ed8); }
+        .bg-card-green { background: linear-gradient(135deg, #10b981, #047857); }
+        .bg-card-amber { background: linear-gradient(135deg, #f59e0b, #b45309); }
+        .bg-card-red { background: linear-gradient(135deg, #ef4444, #b91c1c); }
+        .stat-card i { position: absolute; right: 15px; bottom: 15px; font-size: 2.5rem; opacity: 0.2; }
+        .table-responsive { max-height: 480px; overflow-y: auto; }
+        .chart-container { position: relative; height: 320px; }
+        .badge-status { font-size: 0.8rem; padding: 5px 10px; border-radius: 6px; }
+
+        /* Style Tambahan untuk Komponen Gambar 2 */
+        .box-distribusi { background-color: #f8fafc; border-radius: 8px; padding: 15px; }
+        .box-bottleneck-ppic { background-color: #fff1f2; border: 1px solid #ffe4e6; border-radius: 8px; padding: 15px; color: #991b1b; }
+        
+        /* CSS khusus Print / Cetak */
+        @media print {
+            .no-print { display: none !important; }
+            body { background-color: #fff !important; }
+            .card { box-shadow: none !important; border: 1px solid #ccc !important; }
+            .table-responsive { max-height: none !important; overflow: visible !important; }
+            #projectNameContainer { display: block !important; }
+        }
     </style>
 </head>
 <body>
 
-    <nav class="navbar navbar-dark bg-dark mb-4">
-        <div class="container-fluid">
-            <span class="navbar-brand mb-0 h1"><i class="fa-solid fa-industry me-2"></i>Dashboard Monitoring Progres Fabrikasi</span>
+    <nav class="navbar navbar-dark mb-4 shadow">
+        <div class="container-fluid px-4 d-flex justify-content-between align-items-center">
+            <span class="navbar-brand mb-0 h1 fw-bold">
+                <i class="fa-solid fa-industry text-warning me-2"></i>Dashboard Monitoring Fabrikasi
+            </span>
+            <!-- Nama Proyek di Pojok Kanan Atas Navbar -->
+            <div id="projectNameContainer" class="text-end text-white">
+                <small class="text-light opacity-75 d-block" style="font-size: 0.75rem;">NAMA PROYEK / FILE:</small>
+                <span id="lblProjectName" class="fw-bold text-warning fs-6">n.xlsx</span>
+            </div>
         </div>
     </nav>
 
     <div class="container-fluid px-4">
 
-        <!-- Input & Search Bar -->
-        <div class="card p-3">
+        <!-- Control Panel: Upload File & Search & Action Buttons -->
+        <div class="card p-3 no-print">
             <div class="row g-3 align-items-center">
-                <div class="col-md-5">
-                    <label for="excelFile" class="form-label fw-bold"><i class="fa-solid fa-file-excel me-1 text-success"></i> Upload File Data Excel (.xlsx)</label>
+                <div class="col-md-4">
+                    <label for="excelFile" class="form-label fw-bold text-secondary">
+                        <i class="fa-solid fa-file-excel text-success me-1"></i> Upload File Data Excel (n.xlsx)
+                    </label>
                     <input type="file" class="form-control" id="excelFile" accept=".xlsx, .xls">
                 </div>
-                <div class="col-md-5">
-                    <label for="searchHeadmark" class="form-label fw-bold"><i class="fa-solid fa-search me-1 text-primary"></i> Cari Headmark</label>
-                    <input type="text" class="form-control" id="searchHeadmark" placeholder="Ketik nama Headmark (cth: HM-01)..." onkeyup="filterData()">
+                <div class="col-md-4">
+                    <label for="searchHeadmark" class="form-label fw-bold text-secondary">
+                        <i class="fa-solid fa-magnifying-glass text-primary me-1"></i> Cari Headmark / Deskripsi
+                    </label>
+                    <input type="text" class="form-control" id="searchHeadmark" placeholder="Ketik Headmark (cth: SCI-001, R1-001)..." onkeyup="filterData()">
                 </div>
-                <div class="col-md-2 d-flex align-items-end">
-                    <button class="btn btn-outline-secondary w-100" onclick="loadSampleData()"><i class="fa-solid fa-rotate-right me-1"></i> Data Contoh</button>
+                <div class="col-md-4 d-flex align-items-end gap-2">
+                    <button class="btn btn-outline-primary fw-semibold flex-fill" onclick="loadDefaultData()">
+                        <i class="fa-solid fa-arrows-rotate me-1"></i> Reset
+                    </button>
+                    <button class="btn btn-success fw-semibold flex-fill" onclick="exportToExcel()">
+                        <i class="fa-solid fa-file-export me-1"></i> Export Excel
+                    </button>
+                    <button class="btn btn-dark fw-semibold flex-fill" onclick="window.print()">
+                        <i class="fa-solid fa-print me-1"></i> Print / Cetak
+                    </button>
                 </div>
             </div>
         </div>
 
-        <!-- KPI Cards -->
+        <!-- KPI Summary Cards -->
         <div class="row">
             <div class="col-xl-3 col-md-6">
-                <div class="card stat-card bg-gradient-primary p-3">
+                <div class="stat-card bg-card-blue">
                     <h6>Total Headmark</h6>
-                    <h3 id="lblTotalHM">0</h3>
+                    <h2 id="lblTotalHM" class="fw-bold my-1">0</h2>
+                    <small id="lblTotalQty">0 Pcs Total Item</small>
+                    <i class="fa-solid fa-cubes"></i>
                 </div>
             </div>
             <div class="col-xl-3 col-md-6">
-                <div class="card stat-card bg-gradient-success p-3">
+                <div class="stat-card bg-card-green">
                     <h6>Akumulasi Progres Total</h6>
-                    <h3 id="lblTotalProgress">0%</h3>
+                    <h2 id="lblTotalProgress" class="fw-bold my-1">0%</h2>
+                    <small id="lblTotalWeight">0.00 kg Total Berat</small>
+                    <i class="fa-solid fa-chart-line"></i>
                 </div>
             </div>
             <div class="col-xl-3 col-md-6">
-                <div class="card stat-card bg-gradient-warning p-3">
+                <div class="stat-card bg-card-amber">
                     <h6>Headmark In Progress</h6>
-                    <h3 id="lblInProgress">0</h3>
+                    <h2 id="lblInProgress" class="fw-bold my-1">0</h2>
+                    <small id="lblCompleted">0 Completed</small>
+                    <i class="fa-solid fa-spinner"></i>
                 </div>
             </div>
             <div class="col-xl-3 col-md-6">
-                <div class="card stat-card bg-gradient-danger p-3">
+                <div class="stat-card bg-card-red">
                     <h6>Stasiun Bottleneck Utama</h6>
-                    <h3 id="lblBottleneck">-</h3>
+                    <h2 id="lblBottleneck" class="fw-bold my-1">-</h2>
+                    <small id="lblBottleneckVal">Antrean Tertinggi</small>
+                    <i class="fa-solid fa-triangle-exclamation"></i>
                 </div>
             </div>
         </div>
 
-        <!-- Charts Row 1 -->
+        <!-- Tambahan Komponen Gambar 2: Analisis Status & Distribusi Head Mark -->
         <div class="row">
-            <div class="col-lg-6">
+            <div class="col-12">
+                <div class="card p-3">
+                    <h5 class="fw-bold border-bottom pb-2 mb-3">
+                        <i class="fa-solid fa-chart-line text-dark me-2"></i>ANALISIS STATUS & DISTRIBUSI HEAD MARK
+                    </h5>
+                    
+                    <div class="box-distribusi mb-3">
+                        <h6 class="fw-bold text-secondary mb-2">Distribusi Head Mark:</h6>
+                        <ul class="list-unstyled mb-0" id="listDistribusiHeadmark">
+                            <li class="mb-1">
+                                <span class="text-success fw-bold">● Aman (90% - 100%):</span> <span id="distAman">0 Head Mark</span>
+                            </li>
+                            <li class="mb-1">
+                                <span class="text-warning fw-bold">● Waspada (82% - 89%):</span> <span id="distWaspada">0 Head Marks</span>
+                            </li>
+                            <li class="mb-1">
+                                <span class="text-danger fw-bold">● Kritis (&lt; 82%):</span> <span id="distKritis">0 Head Marks</span>
+                            </li>
+                        </ul>
+                    </div>
+
+                    <div class="box-bottleneck-ppic">
+                        <h6 class="fw-bold mb-1">
+                            <i class="fa-solid fa-fire me-1 text-danger"></i> Ringkasan Bottleneck PPIC:
+                        </h6>
+                        <p class="mb-0 fs-6" id="textBottleneckPPIC">
+                            Memuat analisis bottleneck...
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Row Charts 1 -->
+        <div class="row">
+            <div class="col-lg-7">
                 <div class="card">
-                    <div class="card-header bg-white fw-bold"><i class="fa-solid fa-chart-bar me-2"></i>Perbandingan Plan vs Actual per Headmark (%)</div>
+                    <div class="card-header bg-white fw-bold border-0 pt-3">
+                        <i class="fa-solid fa-chart-column me-2 text-primary"></i>Perbandingan Plan vs Actual Progres per Head Mark (%)
+                    </div>
                     <div class="card-body">
                         <div class="chart-container">
                             <canvas id="chartPlanVsActual"></canvas>
@@ -91,23 +171,11 @@
                     </div>
                 </div>
             </div>
-            <div class="col-lg-6">
+            <div class="col-lg-5">
                 <div class="card">
-                    <div class="card-header bg-white fw-bold"><i class="fa-solid fa-chart-line me-2"></i>Tren Progres Fabrikasi</div>
-                    <div class="card-body">
-                        <div class="chart-container">
-                            <canvas id="chartTrend"></canvas>
-                        </div>
+                    <div class="card-header bg-white fw-bold border-0 pt-3">
+                        <i class="fa-solid fa-chart-pie me-2 text-success"></i>Distribusi Status Headmark
                     </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- Charts Row 2 -->
-        <div class="row">
-            <div class="col-lg-4">
-                <div class="card">
-                    <div class="card-header bg-white fw-bold"><i class="fa-solid fa-pie-chart me-2"></i>Distribusi Status Headmark</div>
                     <div class="card-body">
                         <div class="chart-container">
                             <canvas id="chartStatusDist"></canvas>
@@ -115,19 +183,27 @@
                     </div>
                 </div>
             </div>
-            <div class="col-lg-4">
+        </div>
+
+        <!-- Row Charts 2 -->
+        <div class="row">
+            <div class="col-lg-7">
                 <div class="card">
-                    <div class="card-header bg-white fw-bold"><i class="fa-solid fa-layer-group me-2"></i>Status per Stasiun Fabrikasi</div>
+                    <div class="card-header bg-white fw-bold border-0 pt-3">
+                        <i class="fa-solid fa-diagram-project me-2 text-info"></i>Akumulasi Progres per Stasiun Kerja (%)
+                    </div>
                     <div class="card-body">
                         <div class="chart-container">
-                            <canvas id="chartStationStatus"></canvas>
+                            <canvas id="chartStationAcc"></canvas>
                         </div>
                     </div>
                 </div>
             </div>
-            <div class="col-lg-4">
+            <div class="col-lg-5">
                 <div class="card">
-                    <div class="card-header bg-white fw-bold"><i class="fa-solid fa-triangle-exclamation me-2 text-warning"></i>Analisis Bottleneck (Antrean Pekerjaan)</div>
+                    <div class="card-header bg-white fw-bold border-0 pt-3">
+                        <i class="fa-solid fa-filter me-2 text-danger"></i>Analisis Bottleneck (Antrean Pekerjaan per Stasiun)
+                    </div>
                     <div class="card-body">
                         <div class="chart-container">
                             <canvas id="chartBottleneck"></canvas>
@@ -137,29 +213,33 @@
             </div>
         </div>
 
-        <!-- Detail Table -->
-        <div class="card">
-            <div class="card-header bg-white fw-bold d-flex justify-content-between align-items-center">
-                <span><i class="fa-solid fa-table me-2"></i>Detail Monitoring Fabrikasi per Headmark & Stasiun Kerja</span>
+        <!-- Data Detail Table -->
+        <div class="card mb-5">
+            <div class="card-header bg-white fw-bold border-0 pt-3 d-flex justify-content-between align-items-center">
+                <span><i class="fa-solid fa-list-check me-2 text-dark"></i>Detail Monitoring Fabrikasi per Headmark & Stasiun Kerja</span>
             </div>
             <div class="card-body p-0">
                 <div class="table-responsive">
-                    <table class="table table-hover table-striped mb-0 text-center align-middle" id="dataTable">
+                    <table class="table table-hover align-middle text-center mb-0" id="dataTable">
                         <thead class="table-dark">
                             <tr>
-                                <th>Headmark</th>
+                                <th>No</th>
                                 <th>Deskripsi</th>
-                                <th>Plan (%)</th>
-                                <th>Actual (%)</th>
+                                <th>Head Mark</th>
+                                <th>Material</th>
+                                <th>Qty</th>
+                                <th>Total Wt (kg)</th>
                                 <th>Cutting</th>
-                                <th>Fit-up</th>
+                                <th>Drilling</th>
+                                <th>Fitting</th>
                                 <th>Welding</th>
-                                <th>Painting</th>
+                                <th>Finishing</th>
+                                <th>Progres Actual</th>
                                 <th>Status</th>
                             </tr>
                         </thead>
                         <tbody>
-                            <!-- Dynamic Content -->
+                            <!-- Dynamic Table Rows -->
                         </tbody>
                     </table>
                 </div>
@@ -168,141 +248,278 @@
 
     </div>
 
-    <!-- JavaScript Logic -->
+    <!-- JavaScript logic -->
     <script>
-        let globalData = [];
-        let charts = {};
-
-        // Raw Data Sample
-        const sampleData = [
-            { headmark: "HM-01", desc: "Beam W12x26", plan: 100, actual: 100, cutting: "Done", fitup: "Done", welding: "Done", painting: "Done", status: "Completed", week: "W1" },
-            { headmark: "HM-02", desc: "Column H200", plan: 100, actual: 85, cutting: "Done", fitup: "Done", welding: "In Progress", painting: "Pending", status: "In Progress", week: "W2" },
-            { headmark: "HM-03", desc: "Rafter R1", plan: 80, actual: 60, cutting: "Done", fitup: "In Progress", welding: "Pending", painting: "Pending", status: "In Progress", week: "W2" },
-            { headmark: "HM-04", desc: "Bracing B1", plan: 60, actual: 40, cutting: "Done", fitup: "Pending", welding: "Pending", painting: "Pending", status: "In Progress", week: "W3" },
-            { headmark: "HM-05", desc: "Plate Base P1", plan: 40, actual: 0, cutting: "Pending", fitup: "Pending", welding: "Pending", painting: "Pending", status: "Pending", week: "W4" }
+        // Stasiun bobot standar berdasarkan data file n.xlsx
+        const STATIONS = [
+            { key: 'cutting', name: 'Cutting', weight: 0.20 },
+            { key: 'drilling', name: 'Drilling', weight: 0.15 },
+            { key: 'fitting', name: 'Fitting', weight: 0.35 },
+            { key: 'welding', name: 'Welding', weight: 0.20 },
+            { key: 'finishing', name: 'Finishing', weight: 0.05 }
         ];
 
+        // Default Data dari file n.xlsx
+        const defaultRawData = [
+            { no: 1, desc: "COLUMN", bCode: "NTB", headmark: "SCI-001", material: "H125×125×6.5×9", length: 3000, qty: 3, weight: 29470.42, cutting: 3, drilling: 3, fitting: 3, welding: 2, finishing: 0 },
+            { no: 2, desc: "COLUMN", bCode: "NTB", headmark: "SCI-002", material: "H100×100×6×8", length: 3000, qty: 5, weight: 49117.37, cutting: 5, drilling: 5, fitting: 5, welding: 3, finishing: 0 },
+            { no: 3, desc: "COLUMN", bCode: "NTB", headmark: "SCI-003", material: "HOLLOW100×100×5", length: 3000, qty: 6, weight: 58940.84, cutting: 6, drilling: 6, fitting: 6, welding: 4, finishing: 0 },
+            { no: 4, desc: "COLUMN", bCode: "NTB", headmark: "SCI-004", material: "HOLLOW100×100×5", length: 3000, qty: 1, weight: 9823.47, cutting: 1, drilling: 1, fitting: 1, welding: 1, finishing: 0 },
+            { no: 5, desc: "RAFTER", bCode: "NTB", headmark: "R1-001", material: "HOLLOW100×100×2", length: 3000, qty: 2, weight: 19646.95, cutting: 2, drilling: 2, fitting: 2, welding: 1, finishing: 0 },
+            { no: 6, desc: "RAFTER", bCode: "NTB", headmark: "R1-002", material: "HOLLOW100×100×2", length: 3000, qty: 2, weight: 19646.95, cutting: 2, drilling: 2, fitting: 2, welding: 1, finishing: 0 },
+            { no: 7, desc: "RAFTER", bCode: "NTB", headmark: "R1-003", material: "HOLLOW100×100×2", length: 3000, qty: 2, weight: 19646.95, cutting: 2, drilling: 2, fitting: 2, welding: 1, finishing: 0 }
+        ];
+
+        let globalData = [];
+        let activeData = [];
+        let charts = {};
+
         window.onload = function() {
-            loadSampleData();
+            loadDefaultData();
         };
 
-        function loadSampleData() {
-            globalData = [...sampleData];
-            renderDashboard(globalData);
+        function calculateMetrics(item) {
+            let actualProgress = 0;
+            STATIONS.forEach(st => {
+                let qtyDone = item[st.key] || 0;
+                let ratio = item.qty > 0 ? (qtyDone / item.qty) : 0;
+                actualProgress += ratio * st.weight * 100;
+            });
+
+            actualProgress = Math.min(100, Math.round(actualProgress * 10) / 10);
+            
+            let status = "Pending";
+            if (actualProgress >= 100) status = "Completed";
+            else if (actualProgress > 0) status = "In Progress";
+
+            return { ...item, actual: actualProgress, plan: 100, status };
         }
 
-        // Upload Excel Handler
+        function loadDefaultData() {
+            document.getElementById('lblProjectName').innerText = "n.xlsx";
+            document.getElementById('excelFile').value = "";
+            globalData = defaultRawData.map(calculateMetrics);
+            activeData = [...globalData];
+            renderDashboard(activeData);
+        }
+
+        // Excel File Parser logic
         document.getElementById('excelFile').addEventListener('change', function(e) {
             const file = e.target.files[0];
             if (!file) return;
+
+            // Update nama proyek berdasarkan nama file
+            document.getElementById('lblProjectName').innerText = file.name;
 
             const reader = new FileReader();
             reader.onload = function(e) {
                 const data = new Uint8Array(e.target.result);
                 const workbook = XLSX.read(data, {type: 'array'});
                 const firstSheet = workbook.Sheets[workbook.SheetNames[0]];
-                const jsonData = XLSX.utils.sheet_to_json(firstSheet);
+                const rows = XLSX.utils.sheet_to_json(firstSheet, {header: 1});
 
-                // Transform Excel keys if needed
-                globalData = jsonData.map(row => ({
-                    headmark: row.Headmark || row.headmark || "-",
-                    desc: row.Deskripsi || row.desc || "-",
-                    plan: Number(row.Plan || row.plan || 0),
-                    actual: Number(row.Actual || row.actual || 0),
-                    cutting: row.Cutting || row.cutting || "Pending",
-                    fitup: row.FitUp || row.fitup || "Pending",
-                    welding: row.Welding || row.welding || "Pending",
-                    painting: row.Painting || row.painting || "Pending",
-                    status: row.Status || row.status || "Pending",
-                    week: row.Week || row.week || "W1"
-                }));
+                let parsedData = [];
+                // Dynamic Row Detection for n.xlsx format
+                for (let i = 0; i < rows.length; i++) {
+                    let row = rows[i];
+                    if (row && typeof row[0] === 'number' && row[3]) {
+                        parsedData.push({
+                            no: row[0],
+                            desc: row[1] || "-",
+                            bCode: row[2] || "-",
+                            headmark: String(row[3]),
+                            material: row[4] || "-",
+                            length: row[5] || 0,
+                            qty: Number(row[6]) || 0,
+                            weight: Number(row[8]) || 0,
+                            cutting: Number(row[10]) || 0,
+                            drilling: Number(row[11]) || 0,
+                            fitting: Number(row[12]) || 0,
+                            welding: Number(row[13]) || 0,
+                            finishing: Number(row[14]) || 0
+                        });
+                    }
+                }
 
-                renderDashboard(globalData);
+                if (parsedData.length > 0) {
+                    globalData = parsedData.map(calculateMetrics);
+                    activeData = [...globalData];
+                    renderDashboard(activeData);
+                } else {
+                    alert("Format data Excel tidak sesuai. Pastikan struktur data mirip dengan file n.xlsx.");
+                }
             };
             reader.readAsArrayBuffer(file);
         });
 
         // Search Filter
         function filterData() {
-            const keyword = document.getElementById('searchHeadmark').value.toLowerCase();
-            const filtered = globalData.filter(d => 
+            const keyword = document.getElementById('searchHeadmark').value.toLowerCase().trim();
+            activeData = globalData.filter(d => 
                 d.headmark.toLowerCase().includes(keyword) || 
-                d.desc.toLowerCase().includes(keyword)
+                d.desc.toLowerCase().includes(keyword) ||
+                d.material.toLowerCase().includes(keyword)
             );
-            renderDashboard(filtered);
+            renderDashboard(activeData);
         }
 
-        // Render Dashboard Controls
         function renderDashboard(data) {
-            updateCards(data);
+            updateKPIs(data);
+            renderAnalisisGambar2(data); // Fungsi render untuk Gambar 2
             updateTable(data);
             renderChartPlanVsActual(data);
-            renderChartTrend(data);
             renderChartStatusDist(data);
-            renderChartStationStatus(data);
+            renderChartStationAcc(data);
             renderChartBottleneck(data);
         }
 
-        function updateCards(data) {
+        function updateKPIs(data) {
             document.getElementById('lblTotalHM').innerText = data.length;
             
-            const avgActual = data.length ? (data.reduce((acc, curr) => acc + curr.actual, 0) / data.length).toFixed(1) : 0;
+            const totalQty = data.reduce((acc, c) => acc + c.qty, 0);
+            document.getElementById('lblTotalQty').innerText = `${totalQty} Pcs Total Item`;
+
+            const totalWeight = data.reduce((acc, c) => acc + c.weight, 0);
+            document.getElementById('lblTotalWeight').innerText = `${totalWeight.toLocaleString('id-ID')} kg Total Berat`;
+
+            const avgActual = data.length ? (data.reduce((acc, c) => acc + c.actual, 0) / data.length).toFixed(1) : 0;
             document.getElementById('lblTotalProgress').innerText = avgActual + "%";
-            
-            const inProgressCount = data.filter(d => d.status === "In Progress").length;
-            document.getElementById('lblInProgress').innerText = inProgressCount;
 
-            // Bottleneck Calculation (Station with most "In Progress")
-            const stations = ['cutting', 'fitup', 'welding', 'painting'];
-            let maxCount = -1;
-            let bottleneck = "-";
+            const inProg = data.filter(d => d.status === "In Progress").length;
+            const completed = data.filter(d => d.status === "Completed").length;
+            document.getElementById('lblInProgress').innerText = inProg;
+            document.getElementById('lblCompleted').innerText = `${completed} Completed`;
 
-            stations.forEach(st => {
-                const count = data.filter(d => d[st] === "In Progress").length;
-                if(count > maxCount && count > 0) {
-                    maxCount = count;
-                    bottleneck = st.toUpperCase();
+            // Calculate Bottleneck
+            let maxQueue = -1;
+            let bottleneckName = "-";
+            STATIONS.forEach(st => {
+                let queueCount = data.filter(d => d[st.key] < d.qty && d[st.key] > 0).length;
+                if (queueCount > maxQueue && queueCount > 0) {
+                    maxQueue = queueCount;
+                    bottleneckName = st.name;
                 }
             });
-            document.getElementById('lblBottleneck').innerText = bottleneck;
+
+            document.getElementById('lblBottleneck').innerText = bottleneckName;
+            document.getElementById('lblBottleneckVal').innerText = maxQueue > 0 ? `${maxQueue} Headmark Tertahan` : "Tidak Ada Antrean";
+        }
+
+        // --- Fungsi khusus untuk merender komponen Gambar 2 ---
+        function renderAnalisisGambar2(data) {
+            const aman = data.filter(d => d.actual >= 90 && d.actual <= 100);
+            const waspada = data.filter(d => d.actual >= 82 && d.actual < 90);
+            const kritis = data.filter(d => d.actual < 82);
+
+            // Format list nama/deskripsi per kategori
+            const formatDetails = (arr) => {
+                if (arr.length === 0) return "";
+                const details = arr.map(d => `${d.headmark}`).join(', ');
+                return `(${details})`;
+            };
+
+            document.getElementById('distAman').innerText = `${aman.length} Head Mark ${formatDetails(aman)}`;
+            document.getElementById('distWaspada').innerText = `${waspada.length} Head Marks ${formatDetails(waspada)}`;
+            document.getElementById('distKritis').innerText = `${kritis.length} Head Marks ${formatDetails(kritis)}`;
+
+            // Analisis Dinamis Bottleneck PPIC
+            let textPPIC = "Semua proses berjalan lancar dan belum terdeteksi bottleneck berlebih.";
+            
+            // Cari stasiun dengan selisih pengerjaan terbesar dibanding stasiun sebelumnya
+            let maxDrop = 0;
+            let bottleneckStation = "";
+            let prevStationName = "";
+            let uncompletedQty = 0;
+
+            for (let i = 1; i < STATIONS.length; i++) {
+                let prevSt = STATIONS[i-1];
+                let currSt = STATIONS[i];
+
+                let prevDoneSum = data.reduce((acc, d) => acc + (d[prevSt.key] || 0), 0);
+                let currDoneSum = data.reduce((acc, d) => acc + (d[currSt.key] || 0), 0);
+                
+                let drop = prevDoneSum - currDoneSum;
+                if (drop > maxDrop) {
+                    maxDrop = drop;
+                    bottleneckStation = currSt.name;
+                    prevStationName = prevSt.name;
+                    uncompletedQty = drop;
+                }
+            }
+
+            if (maxDrop > 0) {
+                textPPIC = `Penumpukan beban kerja terjadi pada <strong>Stasiun ${bottleneckStation}</strong>. ${prevStationName} telah selesai/berjalan lebih cepat namun <strong>${uncompletedQty} unit</strong> belum lolos ${bottleneckStation.toLowerCase()} penuh.`;
+            }
+
+            document.getElementById('textBottleneckPPIC').innerHTML = textPPIC;
         }
 
         function updateTable(data) {
             const tbody = document.querySelector('#dataTable tbody');
             tbody.innerHTML = '';
-            
-            data.forEach(row => {
-                const getBadge = (val) => {
-                    if (val === 'Done') return '<span class="badge bg-success">Done</span>';
-                    if (val === 'In Progress') return '<span class="badge bg-warning text-dark">In Progress</span>';
-                    return '<span class="badge bg-secondary">Pending</span>';
-                };
 
+            data.forEach(row => {
                 const tr = document.createElement('tr');
+                
+                let badgeClass = row.status === 'Completed' ? 'bg-success' : row.status === 'In Progress' ? 'bg-warning text-dark' : 'bg-secondary';
+
                 tr.innerHTML = `
-                    <td class="fw-bold">${row.headmark}</td>
-                    <td>${row.desc}</td>
-                    <td>${row.plan}%</td>
-                    <td>
-                        <div class="progress" style="height: 15px;">
-                            <div class="progress-bar bg-info" role="progressbar" style="width: ${row.actual}%">${row.actual}%</div>
+                    <td>${row.no}</td>
+                    <td class="fw-semibold text-start">${row.desc}</td>
+                    <td><span class="badge bg-dark">${row.headmark}</span></td>
+                    <td class="text-start"><small>${row.material}</small></td>
+                    <td>${row.qty}</td>
+                    <td>${row.weight.toLocaleString('id-ID')}</td>
+                    <td>${row.cutting}/${row.qty}</td>
+                    <td>${row.drilling}/${row.qty}</td>
+                    <td>${row.fitting}/${row.qty}</td>
+                    <td>${row.welding}/${row.qty}</td>
+                    <td>${row.finishing}/${row.qty}</td>
+                    <td style="min-width: 120px;">
+                        <div class="fw-bold small mb-1">${row.actual}%</div>
+                        <div class="progress" style="height: 6px;">
+                            <div class="progress-bar bg-primary" role="progressbar" style="width: ${row.actual}%"></div>
                         </div>
                     </td>
-                    <td>${getBadge(row.cutting)}</td>
-                    <td>${getBadge(row.fitup)}</td>
-                    <td>${getBadge(row.welding)}</td>
-                    <td>${getBadge(row.painting)}</td>
-                    <td><span class="badge ${row.status === 'Completed' ? 'bg-success' : row.status === 'In Progress' ? 'bg-warning text-dark' : 'bg-danger'}">${row.status}</span></td>
+                    <td><span class="badge ${badgeClass} badge-status">${row.status}</span></td>
                 `;
                 tbody.appendChild(tr);
             });
         }
 
-        // --- Chart Render Functions ---
-        function createChart(ctxId, type, config) {
-            if (charts[ctxId]) charts[ctxId].destroy();
-            const ctx = document.getElementById(ctxId).getContext('2d');
-            charts[ctxId] = new Chart(ctx, { type: type, data: config.data, options: config.options });
+        // --- Export to Excel Function ---
+        function exportToExcel() {
+            const exportData = activeData.map(d => ({
+                "No": d.no,
+                "Deskripsi": d.desc,
+                "Kode": d.bCode,
+                "Headmark": d.headmark,
+                "Material": d.material,
+                "Panjang": d.length,
+                "Qty": d.qty,
+                "Total Weight (kg)": d.weight,
+                "Cutting": d.cutting,
+                "Drilling": d.drilling,
+                "Fitting": d.fitting,
+                "Welding": d.welding,
+                "Finishing": d.finishing,
+                "Progres Actual (%)": d.actual,
+                "Status": d.status
+            }));
+
+            const worksheet = XLSX.utils.json_to_sheet(exportData);
+            const workbook = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(workbook, worksheet, "Monitoring Fabrikasi");
+            
+            const fileName = document.getElementById('lblProjectName').innerText.replace('.xlsx', '').replace('.xls', '');
+            XLSX.writeFile(workbook, `Monitoring_Fabrikasi_${fileName}.xlsx`);
+        }
+
+        // --- Charts Generator ---
+        function createChart(id, type, config) {
+            if (charts[id]) charts[id].destroy();
+            const ctx = document.getElementById(id).getContext('2d');
+            charts[id] = new Chart(ctx, { type, data: config.data, options: config.options });
         }
 
         function renderChartPlanVsActual(data) {
@@ -310,35 +527,11 @@
                 data: {
                     labels: data.map(d => d.headmark),
                     datasets: [
-                        { label: 'Plan (%)', data: data.map(d => d.plan), backgroundColor: '#4e73df' },
-                        { label: 'Actual (%)', data: data.map(d => d.actual), backgroundColor: '#1cc88a' }
+                        { label: 'Plan (%)', data: data.map(d => d.plan), backgroundColor: '#cbd5e1' },
+                        { label: 'Actual (%)', data: data.map(d => d.actual), backgroundColor: '#3b82f6' }
                     ]
                 },
                 options: { responsive: true, maintainAspectRatio: false, scales: { y: { max: 100, beginAtZero: true } } }
-            });
-        }
-
-        function renderChartTrend(data) {
-            // Grouping by Week for Trend
-            const weeks = [...new Set(data.map(d => d.week))];
-            const planTrend = weeks.map(w => {
-                const filtered = data.filter(d => d.week === w);
-                return filtered.reduce((acc, c) => acc + c.plan, 0) / (filtered.length || 1);
-            });
-            const actualTrend = weeks.map(w => {
-                const filtered = data.filter(d => d.week === w);
-                return filtered.reduce((acc, c) => acc + c.actual, 0) / (filtered.length || 1);
-            });
-
-            createChart('chartTrend', 'line', {
-                data: {
-                    labels: weeks,
-                    datasets: [
-                        { label: 'Plan Avg (%)', data: planTrend, borderColor: '#4e73df', fill: false, tension: 0.3 },
-                        { label: 'Actual Avg (%)', data: actualTrend, borderColor: '#1cc88a', fill: false, tension: 0.3 }
-                    ]
-                },
-                options: { responsive: true, maintainAspectRatio: false }
             });
         }
 
@@ -352,48 +545,47 @@
                     labels: ['Completed', 'In Progress', 'Pending'],
                     datasets: [{
                         data: [completed, inProgress, pending],
-                        backgroundColor: ['#1cc88a', '#f6c23e', '#e74a3b']
+                        backgroundColor: ['#10b981', '#f59e0b', '#ef4444']
                     }]
                 },
                 options: { responsive: true, maintainAspectRatio: false }
             });
         }
 
-        function renderChartStationStatus(data) {
-            const stations = ['Cutting', 'Fit-up', 'Welding', 'Painting'];
-            const keys = ['cutting', 'fitup', 'welding', 'painting'];
+        function renderChartStationAcc(data) {
+            const labels = STATIONS.map(s => s.name);
+            const progressData = STATIONS.map(st => {
+                let totalQty = data.reduce((acc, c) => acc + c.qty, 0);
+                let doneQty = data.reduce((acc, c) => acc + (c[st.key] || 0), 0);
+                return totalQty > 0 ? Math.round((doneQty / totalQty) * 100) : 0;
+            });
 
-            const doneData = keys.map(k => data.filter(d => d[k] === 'Done').length);
-            const inProgData = keys.map(k => data.filter(d => d[k] === 'In Progress').length);
-            const pendingData = keys.map(k => data.filter(d => d[k] === 'Pending').length);
-
-            createChart('chartStationStatus', 'bar', {
+            createChart('chartStationAcc', 'bar', {
                 data: {
-                    labels: stations,
-                    datasets: [
-                        { label: 'Done', data: doneData, backgroundColor: '#1cc88a' },
-                        { label: 'In Progress', data: inProgData, backgroundColor: '#f6c23e' },
-                        { label: 'Pending', data: pendingData, backgroundColor: '#858796' }
-                    ]
+                    labels: labels,
+                    datasets: [{
+                        label: 'Progres Akumulasi (%)',
+                        data: progressData,
+                        backgroundColor: '#06b6d4'
+                    }]
                 },
-                options: { responsive: true, maintainAspectRatio: false, scales: { x: { stacked: true }, y: { stacked: true } } }
+                options: { responsive: true, maintainAspectRatio: false, scales: { y: { max: 100, beginAtZero: true } } }
             });
         }
 
         function renderChartBottleneck(data) {
-            const stations = ['Cutting', 'Fit-up', 'Welding', 'Painting'];
-            const keys = ['cutting', 'fitup', 'welding', 'painting'];
-            
-            // Bottleneck calculated by items waiting/In Progress in each station
-            const queueData = keys.map(k => data.filter(d => d[k] === 'In Progress').length);
+            const labels = STATIONS.map(s => s.name);
+            const inProgressData = STATIONS.map(st => {
+                return data.filter(d => d[st.key] < d.qty && d[st.key] > 0).length;
+            });
 
             createChart('chartBottleneck', 'bar', {
                 data: {
-                    labels: stations,
+                    labels: labels,
                     datasets: [{
-                        label: 'Antrean / In-Progress',
-                        data: queueData,
-                        backgroundColor: '#e74a3b'
+                        label: 'Jumlah Headmark Antre / In-Progress',
+                        data: inProgressData,
+                        backgroundColor: '#ef4444'
                     }]
                 },
                 options: { 
